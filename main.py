@@ -1,4 +1,5 @@
-import random, pygame
+import random
+import pygame
 from time import sleep
 from pygame.locals import *
 
@@ -9,14 +10,18 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 YELLOW = (250, 250, 250)
 RED = (250, 50, 50)
+BRIGHT_RED = (250, 100, 100)
+GREEN = (50, 250, 50)
+BRIGHT_GREEN = (100, 250, 100)
 
 FPS = 60
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super(Player, self).__init__()
         self.image = pygame.image.load("./images/fighter.png")
-        self.rect = self.image.get_rect() # 그림의 현재 위치
+        self.rect = self.image.get_rect()  # 그림의 현재 위치
         self.rect.x = int(Window_width / 2)
         self.rect.y = Window_height - self.rect.height
         self.dx = 0
@@ -38,7 +43,6 @@ class Player(pygame.sprite.Sprite):
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
-    
     # 충돌일어났을 경우
     def collide(self, sprites):
         for sprite in sprites:
@@ -56,17 +60,15 @@ class Missile(pygame.sprite.Sprite):
         self.speed = speed
         self.sound = pygame.mixer.Sound("./sounds/missile.wav")
 
-
     # 소리 들리도록
+
     def launch(self):
         self.sound.play()
 
-    
     def update(self):
         self.rect.y -= self.speed
-        if self.rect.y + self.rect.height < 0: # 미사일 화면 밖으로 나가면 없애주자
+        if self.rect.y + self.rect.height < 0:  # 미사일 화면 밖으로 나가면 없애주자
             self.kill()
-        
 
     def collide(self, sprites):
         for sprite in sprites:
@@ -74,7 +76,6 @@ class Missile(pygame.sprite.Sprite):
                 return sprite
 
 
-    
 class Rock(pygame.sprite.Sprite):
     def __init__(self, x_pos, y_pos, speed):
         super(Rock, self).__init__()
@@ -86,16 +87,15 @@ class Rock(pygame.sprite.Sprite):
             "./images/rock21.png", "./images/rock22.png", "./images/rock23.png", "./images/rock24.png", "./images/rock25.png",
             "./images/rock26.png", "./images/rock27.png", "./images/rock28.png", "./images/rock29.png", "./images/rock30.png",
         )
-        self.image = pygame.image.load(random.choice(rock_images)) # rock이라는 class가 호출 될 때마다 랜덤으로 이미지 불러옴
+        # rock이라는 class가 호출 될 때마다 랜덤으로 이미지 불러옴
+        self.image = pygame.image.load(random.choice(rock_images))
         self.rect = self.image.get_rect()
         self.rect.x = x_pos
         self.rect.y = y_pos
         self.speed = speed
 
-        
     def update(self):
         self.rect.y += self.speed
-
 
     def out_out_screen(self):
         if self.rect.y > Window_height:
@@ -117,17 +117,71 @@ def occur_explosion(surface, x, y):
     explosion_rect.y = y
     surface.blit(explosion_image, explosion_rect)
 
-    explosion_sounds = ("./sounds/explosion01.wav", "./sounds/explosion02.wav", "./sounds/explosion03.wav", "./sounds/explosion04.wav")
+    explosion_sounds = ("./sounds/explosion01.wav", "./sounds/explosion02.wav",
+                        "./sounds/explosion03.wav", "./sounds/explosion04.wav")
     explosion_sound = pygame.mixer.Sound(random.choice(explosion_sounds))
     explosion_sound.play()
 
+def text_objects(text, font):
+    textSurface = font.render(text, True, BLACK)
+    return textSurface, textSurface.get_rect()
+
+
+def button(msg, x, y, w, h, ic, ac, action=None):
+    mouse = pygame.mouse.get_pos()
+    click = pygame.mouse.get_pressed()
+    if x+w > mouse[0] > x and y+h > mouse[1] > y:
+        pygame.draw.rect(screen, ac, (x, y, w, h))
+
+        if click[0] == 1 and action != None:
+            action()         
+    else:
+        pygame.draw.rect(screen, ic, (x, y, w, h))
+
+    smallText = pygame.font.SysFont("comicsansms", 20)
+    textSurf, textRect = text_objects(msg, smallText)
+    textRect.center = ((x+(w/2)), (y+(h/2)))
+    screen.blit(textSurf, textRect)
+
+def quitgame():
+    pygame.quit()
+    quit()
+
+def unpause():
+    global pause
+    pause = False
+
+
+def paused():
+    draw_x = int(Window_width / 2)
+    draw_y = int(Window_height / 4)
+    font_60 = pygame.font.Font("./fonts/Nanumgothic.ttf", 60)
+    
+
+    while pause:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+        background_image = pygame.image.load("./images/background.png")
+        screen.blit(background_image, background_image.get_rect())
+        button("Continue", Window_width - 450, draw_y + 300, 100, 50, GREEN, BRIGHT_GREEN, unpause)
+        button("Quit", Window_width - 130, draw_y + 300, 100, 50, RED, BRIGHT_RED, quitgame)
+        draw_text("Paused", font_60, screen, draw_x, draw_y / 2, WHITE)
+
+        pygame.display.update()
+        clocks = pygame.time.Clock()
+        clocks.tick(FPS)
+
 
 def game_loop():
+    global pause
     default_font = pygame.font.Font("./fonts/NanumGothic.ttf", 28)
     background_image = pygame.image.load("./images/background.png")
     gameover_sound = pygame.mixer.Sound("./sounds/gameover.wav")
     pygame.mixer.music.load("./sounds/music.wav")
-    pygame.mixer.music.play(-1) # 무한반복
+    pygame.mixer.music.play(-1)  # 무한반복
     fps_clock = pygame.time.Clock()
 
     player = Player()
@@ -154,6 +208,9 @@ def game_loop():
                     missile = Missile(player.rect.centerx, player.rect.y, 10)
                     missile.launch()
                     missiles.add(missile)
+                elif event.key == pygame.K_p:
+                    pause = True
+                    paused()
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                     player.dx = 0
@@ -172,11 +229,13 @@ def game_loop():
                 rock = Rock(random.randint(0, Window_width - 30), 0, speed)
                 rocks.add(rock)
 
-        draw_text("파괴한 운석: {}".format(shot_count), default_font, screen, 100, 20, YELLOW)
-        draw_text("놓친 운석: {}".format(count_missed), default_font, screen, 400, 20, RED)
+        draw_text("파괴한 운석: {}".format(shot_count),
+                  default_font, screen, 100, 20, YELLOW)
+        draw_text("놓친 운석: {}".format(count_missed),
+                  default_font, screen, 400, 20, RED)
 
         for missile in missiles:
-            rock = missile.collide(rocks) # 미사일과 운석이 충돌한 경우
+            rock = missile.collide(rocks)  # 미사일과 운석이 충돌한 경우
             if rock:
                 missile.kill()
                 rock.kill()
@@ -184,7 +243,7 @@ def game_loop():
                 shot_count += 1
 
         for rock in rocks:
-            if rock.out_out_screen(): #운석이 화면 밖으로 나간 경우
+            if rock.out_out_screen():  # 운석이 화면 밖으로 나간 경우
                 rock.kill()
                 count_missed += 1
 
@@ -197,7 +256,7 @@ def game_loop():
         pygame.display.flip()
 
         # 게임 종료 조건
-        if player.collide(rocks)  or count_missed >= 3:
+        if player.collide(rocks) or count_missed >= 3:
             pygame.mixer_music.stop()
             occur_explosion(screen, player.rect.x, player.rect.y)
             pygame.display.update()

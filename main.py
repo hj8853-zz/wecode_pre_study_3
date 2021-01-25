@@ -2,8 +2,8 @@ import random, pygame, player, missile, rock
 from time import sleep
 from pygame.locals import *
 
-Window_width = 480
-Window_height = 640
+Window_width = 480 
+Window_height = 640 
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -13,7 +13,7 @@ BRIGHT_RED = (250, 100, 100)
 GREEN = (50, 250, 50)
 BRIGHT_GREEN = (100, 250, 100)
 
-FPS = 60
+FPS = 120
 
 def draw_text(text, font, surface, x, y, main_color):
     text_object = font.render(text, True, main_color)

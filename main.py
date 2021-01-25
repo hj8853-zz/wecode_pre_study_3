@@ -13,7 +13,7 @@ BRIGHT_RED = (250, 100, 100)
 GREEN = (50, 250, 50)
 BRIGHT_GREEN = (100, 250, 100)
 
-FPS = 60
+FPS = 120
 
 def draw_text(text, font, surface, x, y, main_color):
     text_object = font.render(text, True, main_color)

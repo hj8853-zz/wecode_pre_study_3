@@ -2,8 +2,8 @@ import random, pygame, player, missile, rock
 from time import sleep
 from pygame.locals import *
 
-Window_width = 480
-Window_height = 640
+Window_width = 480 
+Window_height = 640 
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
